@@ -29,3 +29,4 @@ d:\dia\programacion grafica\proyectos\1\prueba2d\obj\Debug\net9.0\refint\prueba2
 d:\dia\programacion grafica\proyectos\1\prueba2d\obj\Debug\net9.0\prueba2d.pdb
 D:\dia\programacion grafica\proyectos\1\prueba2d\obj\Debug\net9.0\prueba2d.genruntimeconfig.cache
 D:\dia\programacion grafica\proyectos\1\prueba2d\obj\Debug\net9.0\ref\prueba2d.dll
+D:\dia\programacion grafica\proyectos\1\prueba2d\obj\Debug\net9.0\prueba2d.sourcelink.json

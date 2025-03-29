@@ -9,8 +9,9 @@ namespace OpenTKCubo3D
 {
     class Program : GameWindow
     {
-        private float _angleY; // Ángulo de rotación en el eje Y (izquierda/derecha)
-        private float _angleX; // Ángulo de rotación en el eje X (arriba/abajo)
+        private float _cameraAngleY;
+        private float _cameraAngleX;
+        private float _cameraDistance = 20.0f;
         //private int _vertexBufferObject;
         //private int _vertexArrayObject;
         private int _shaderProgram;
@@ -94,32 +95,20 @@ namespace OpenTKCubo3D
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
             base.OnUpdateFrame(args);
-
             var input = KeyboardState;
 
-            if (input.IsKeyDown(Keys.Escape))
-            {
-                Close();
-            }
-            // Rotar el cubo con las flechas del teclado
+            if (input.IsKeyDown(Keys.Escape)) Close();
+
             float rotationSpeed = 0.002f;
 
-            if (input.IsKeyDown(Keys.Left))
-            {
-                _angleY -= rotationSpeed; // Rotación en el eje Y (izquierda)
-            }
-            if (input.IsKeyDown(Keys.Right))
-            {
-                _angleY += rotationSpeed; // Rotación en el eje Y (derecha)
-            }
-            if (input.IsKeyDown(Keys.Up))
-            {
-                _angleX -= rotationSpeed; // Rotación en el eje X (arriba)
-            }
-            if (input.IsKeyDown(Keys.Down))
-            {
-                _angleX += rotationSpeed; // Rotación en el eje X (abajo)
-            }
+            // Rotar cámara con flechas
+            if (input.IsKeyDown(Keys.Left)) _cameraAngleY -= rotationSpeed;
+            if (input.IsKeyDown(Keys.Right)) _cameraAngleY += rotationSpeed;
+            if (input.IsKeyDown(Keys.Up)) _cameraAngleX -= rotationSpeed;
+            if (input.IsKeyDown(Keys.Down)) _cameraAngleX += rotationSpeed;
+
+            // Limitar ángulo vertical para evitar volteretas
+            _cameraAngleX = MathHelper.Clamp(_cameraAngleX, -MathHelper.PiOver2 + 0.1f, MathHelper.PiOver2 - 0.1f);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -128,11 +117,20 @@ namespace OpenTKCubo3D
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.UseProgram(_shaderProgram);
 
-            // Configurar la vista y proyección
+            // Calcular posición de la cámara
+            Vector3 cameraPos = new Vector3(
+                _cameraDistance * (float)Math.Sin(_cameraAngleY) * (float)Math.Cos(_cameraAngleX),
+                _cameraDistance * (float)Math.Sin(_cameraAngleX),
+                _cameraDistance * (float)Math.Cos(_cameraAngleY) * (float)Math.Cos(_cameraAngleX)
+            );
+
+            _view = Matrix4.LookAt(cameraPos, Vector3.Zero, Vector3.UnitY); // La cámara mira al centro
+
+            // Pasar matrices al shader
             GL.UniformMatrix4(GL.GetUniformLocation(_shaderProgram, "view"), false, ref _view);
             GL.UniformMatrix4(GL.GetUniformLocation(_shaderProgram, "projection"), false, ref _projection);
 
-            // Dibujar cada objeto
+            // Dibujar objetos (sin rotar, solo su posición inicial)
             foreach (var obj in objetos)
             {
                 obj.Render(_shaderProgram);
@@ -277,7 +275,7 @@ namespace OpenTKCubo3D
 
             L1.Add(new Objeto3D(uVertices, -2f, -2f, -2f));
             L1.Add(new Objeto3D(ejesXYZ, 0f, 0f, 0f));
-            L1.Add(new Objeto3D(cuboVertices,3f,2f,5f));
+            L1.Add(new Objeto3D(cuboVertices, 3f, 2f, 5f));
 
             var nativeWindowSettings = new NativeWindowSettings()
             {
